@@ -1,0 +1,139 @@
+\documentclass[a4paper]{article}
+\usepackage{authblk}
+\usepackage{grffile}
+\usepackage[utf8]{inputenc}
+\setlength\parindent{0pt}
+\title{User instructions and tutorials of the \textit{synergyfinder} package}
+
+\author[1]{Liye He}
+\author[1]{Krister Wennerberg}
+\author[1,2]{Tero Aittokallio}
+\author[1,2,3]{Jing Tang}
+\affil[1]{Institute for Molecular Medicine Finland (FIMM), University of Helsinki, Finland}
+\affil[2]{Department of Mathematics and Statistics, University of Turku, Finland}
+\affil[3]{Institute of Biomedicine, University of Helsinki, Finland}
+\setcounter{Maxaffil}{0}
+\renewcommand\Affilfont{\itshape\small}
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{synergyfinder}
+\begin{document}
+
+\maketitle
+
+<<load.package, echo=FALSE>>=
+  options(width=60)
+  library(synergyfinder)
+@
+
+\section{Introduction}
+Recently, drug combination therapies provide a promising strategy in treating cancer by inhabiting redundant pathways simultaneously [1]. Drug combination screening in the cancer cell models is often utilized as a starting point to prioritize the most potential hits for further experimental investigation and therapy optimization [2]. To facilitate the drug combination discovery, high-throughput drug combination screening has the advantage of assaying a large collection of chemical compounds, generating dynamic dose-response profiles that allow us to quantify the degree of drug-drug interactions at an unprecedented level. A drug interaction is usually classified as synergistic, antagonistic or non-interactive, based on the deviation of the observed drug combination response from the expected effect of non-interaction (the null hypothesis). To quantify the degree of drug synergy, several models have been proposed, such as those based on the Highest single agent model (HSA) [3], the Loewe additivity model (Loewe) [4] and the Bliss independence model (Bliss) [5]. However, these existing drug synergy scoring models, together with their software implementations, were proposed initially for low-throughput experiments, which are not flexible enough to analyse high throughput drug combination screening data. We have recently developed a response surface model, called Zero Interaction Potency (ZIP), which combines the advantages of the Loewe and the Bliss models, and proposed a delta score to characterize the synergy landscape over the full dose-response matrix, which is designed to analyse high throughput drug combination screening data [6]. The package \textit{synergyfinder} provides efficient implementations for all the popular synergy scoring models, including HSA, Loewe, Bliss and ZIP. We will demonstrate how to use the \textit{synergyfinder} package to high throughput drug combination screening data in this vignette.
+\section{Input Data}
+A data frame that describes a drug combination dataset is used as the input. The data frame object must contain the following columns:
+\begin{itemize}
+\item BlockID: the identifier for a drug combination. If multiple drug combinations are present, e.g. in the standard 384-well plate where 6 drug combinations are fitted, then the identifiers for each of them must be unique.
+\item Row and Col: the row and column indexes for each well in the plate.
+\item DrugCol: the name of the drug on the columns in a dose-response matrix.
+\item DrugRow: the name of the drug on the rows in a dose-response matrix.
+\item ConcCol and ConcRow: the concentrations of the column drugs and row drugs in a combination.
+\item ConcUnit: the unit of concentrations. It is typically nM or $\mu$M.
+\item Response: the effect of drug combinations at the concentrations specified by ConcCol and ConcRow. The effect must be normalized to \%inhibition based on the positive and negative controls. For a well-controlled experiment, the range of the response values is expected from 0 to 100. However, missing values or extreme values are allowed. For input data where the drug effect is represented as \%viability, the program will internally convert it to \%inhibition value by 100-\%viability.
+\end{itemize}
+We provide an example input data in the package, which is extracted from a recent drug combination screening for the treatment of diffuse large B-cell lymphoma (DLBCL) [7]. The example input data contains two representative drug combinations (ibrutinib \& ispinesib and ibrutinib \& canertinib) for which the \%viability of a cell line TMD8 was assayed using a 6 by 6 dose matrix design. To load the example data, we use the command:
+<<loading.data>>=
+data("mathews_screening_data")
+head(mathews_screening_data)
+@
+We provide a function \textit{ReshapeData} to reshape the input data to a dose-response matrix format for further analysis:
+<<>>=
+dose.response.mat <- ReshapeData(mathews_screening_data,
+                                 data.type = "viability")
+@
+
+
+The output \textit{dose.response.mat} is a list containing the following components:
+
+\begin{itemize}
+\item dose.response.mats: the dose-reponse matrix reshaped from the original input.
+\item drug.pairs: the information of the drug combination such as drug names and drug concentrations.
+\end{itemize}
+
+<<>>=
+str(dose.response.mat)
+@
+\section{Input data visualization}
+The function \textit{PlotDoseResponse} fits a four-parameter log-logistic model to generate the dose-response curves for the single drugs based on the first row and first column of the dose-response matrix. The drug combination responses are also plotted as heatmaps, from which one can assess the therapeutic significance of the combination, e.g. by identifying the concentrations at which the drug combination can lead to a maximal effect on cancer inhibition (Fig. 1).
+<<fig.show='hide'>>=
+  PlotDoseResponse(dose.response.mat)
+@
+The PlotDoseResponse function also provides a high-resolution pdf file by adding the \textit{save.file} parameter:
+<<fig.show='hide'>>=
+  PlotDoseResponse(dose.response.mat, save.file = TRUE)
+@
+The pdf files will be saved under the current work directory with the syntax: "drug1.drug2.dose.response.blockID.pdf".
+  
+\begin{figure}[h!]
+  \label{dose}
+  \includegraphics[width=1\textwidth]{"ispinesib.ibrutinib.dose.response.1"}
+  \includegraphics[width=1\textwidth]{"canertinib.ibrutinib.dose.response.2"}
+  \caption{\textbf{Plots for single drug dose-response curves and drug combination dose-response matrices.} (A) The ibrutinib and ispinesib combination. (B) The ibrutinib and canertinib combination. Left panel: single drug dose-response curves fitted with the commonly-used 4-parameter log-logistic (4PL) function. Right panel: the raw dose-response matrix data is visualized as a heatmap. }
+\end{figure}  
+
+The PlotDoseResponse function also provides other parameters for users to adjust the output. For instance, the parameter \textit{pair.index} allows users to choose which pair of drugs to visualize and the parameters \textit{...} are further graphical parameters from the default plot function in R.
+
+\section{Drug synergy scoring}
+The current synergyfinder package provides the synergy scores of four major reference models, including HSA, Loewe, Bliss and ZIP. Let’s consider a drug combination experiment where drug 1 at dose $x_{1}$is combined with drug 2 at dose $x_2$. The effect of such a combination is $y_c$ as compared to the monotherapy effect $y_1(x_{1})$ and $y_2(x_{2})$. To be able to quantify the degree of drug interactions, one needs to determine the deviation of $y_c$ from the expected effect $y_e$ of non-interaction, which is calculated in different ways with the reference models.
+  
+\begin{itemize}
+  \item HSA: $y_e$ is the effect of the highest monotherapy effect, i.e. $y_e = max(y_1, y_2)$.
+  \item Loewe: $y_e$ is the effect as if a drug is combined with itself, i.e. $y_e = y_1(x_1+x_2)=y_2(x_1+x_2)$.
+  \item Bliss: $y_e$ is the effect as if the two drugs are acting independently on the phenotype, i.e. $y_2=y_1+y_2-y_1y_2$.
+  \item ZIP: $y_e$ is the effect as if the two drugs do not potentiate each other, i.e. both the assumptions of the Loewe model and the Bliss model are met.
+\end{itemize}
+  
+Once $y_e$ can be determined, the synergy score can be calculated as the difference between the observed effect and the expected effect. Depending on whether or the drug combination can be classified as synergistic or antagonist, respectively. Furthermore, as the input data has been normalized as \%inhibition values then the synergy score can be directly interpreted as the proportion of cellular responses that can be attributed to the drug interactions.
+\\ \\
+For a given dose-response matrix, one need to first choose what reference model to use and then apply the \textit{CalculateSynergy} function to calculate the corresponding synergy score at each dose combination. For example, the ZIP-based synergy score for the example data can be obtained by typing:
+<<>>=
+  synergy.score <- CalculateSynergy(data = dose.response.mat,
+                                      method = "ZIP",
+                                      correction = TRUE,
+                                      Emin = 0, Emax = 100)
+@
+The parameters \textit{Emin} and \textit{Emax} specify the minimal and maximal effect of the drug for fitting the four-parameter log-logistic model. In the above example command, the minimal effect is fixed to 0 and the maximal effect is fixed to 100. 
+\\ \\
+For assessing the synergy scores with the other reference models, one needs to change the \textit{method} parameter to 'HSA', 'Loewe' or 'Bliss'. The \textit{correction} parameter specifies if a baseline correction is applied on the raw dose-response data or not. The baseline correction utilizes the average of the minimum responses of the two single drugs as a baseline response to correct the negative response values. \\ \\
+The output \textit{synergy.score} contains the following components:
+\begin{itemize}
+  \item dose.response.mats: the dose-reponse matrix reshaped from the original input.
+  \item drug.pairs: the information of the drug combination such as drug names and drug concentrations.
+  \item scores: a score matrix of the same size to facilitate a dose-level evaluation of drug synergy as well as a direct comparison of the synergy scores between two reference models.
+  \item method: which method is used to generate the synergy scores.
+\end{itemize}
+<<>>=
+  str(synergy.score)
+@
+\section{Visualization of synergy scores}
+The synergy scores are calculated across all the tested concentration combinations, which can be straightforwardly visualized as either a two-dimensional or a three-dimensional interaction surface over the dose matrix. The landscape of such a drug interaction scoring is very informative when identifying the specific dose regions where a synergistic or antagonistic drug interaction occurs. The height of the 3D drug interaction landscape is normalized as the \% inhibition effect to facilitate a direct comparison of the degrees of interaction among multiple drug combinations. In addition, a summarized synergy score is provided by averaging over the whole dose-response matrix. To visualize the drug interaction landscape, one can utilize the \textit{PlotSynergy} function as below (Fig.2):
+<<fig.show='hide'>>=
+  PlotSynergy(synergy.score, type = "all", save.file = TRUE)
+@
+The \textit{type} parameter specifies the visualization type of the interaction surface as 2D, 3D or both.
+\begin{figure}[h!]
+  \label{synergyplot}
+  \includegraphics[width=1\textwidth]{"ispinesib.ibrutinib.synergy.1.ZIP"}
+  \includegraphics[width=1\textwidth]{"canertinib.ibrutinib.synergy.2.ZIP"}
+  \caption{\textbf{The drug interaction landscapes based on the ZIP model.} (A) The ibrutinib and ispinesib combination. (B) The ibrutinib and canertinib combination.}
+\end{figure}
+
+\section{Summary}
+In this vignette, we demonstrated how to use the package \textit{synergyfinder} with an example high-throughput drug combination screening data from [7]. We followed the procedure: illustrating input data, visualising input data, scoring input data and visualising synergy scores. Please go to [2, 6] for more information about the scoring methods.
+\begin{thebibliography}{9}
+  \bibitem{drug} Hu Y, Gupta-Ostermann D, Bajorath J (2014) Exploring compound promiscuity patterns and multi-target activity spaces. Comput Struct Biotechnol J 9: 1-11
+  \bibitem{method} He LY, Kulesskiy E, Saarela J et al (2016) Methods for High-Throughput Drug Combination Screening and Synergy Scoring. Springer Protocols (submitted)
+  \bibitem{hsa} Berenbaum MC (1989) What is synergy. Pharmacol Rev 41: 93-141
+  \bibitem{loewe} Loewe S (1953) The problem of synergism and antagonism of combined drugs. Arzneimittelforschung 3: 285-290
+  \bibitem{bliss} Bliss CI (1939) The toxicity of poisons applied jointly. Ann Appl Biol 26: 585-615
+  \bibitem{zip} Yadav B, Wennerberg K, Aittokallio T et al (2015) Searching for drug synergy in complex dose-response landscapes using an interaction potency model. Comput Struct Biotechnol J 13: 504-513
+  \bibitem{mathews} Mathews Griner LA, Guha R, Shinn P et al (2014) High-throughput combinatorial screening identifies drugs that cooperate with ibrutinib to kill activated B-cell-like diffuse large B-cell lymphoma cells. Proc Natl Acad Sci USA 111: 2349-54
+\end{thebibliography}
+\end{document}

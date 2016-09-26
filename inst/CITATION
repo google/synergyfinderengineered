@@ -1,0 +1,13 @@
+citHeader("To cite synergyfinder in publications, please use:")
+citEntry(entry="article",
+         title = "Methods for High-Throughput Drug Combination Screening and Synergy Scoring
+",
+         author = "Liye He, Evgeny Kulesskiy, Jani Saarela, Laura Turunen, Krister Wennerberg, Tero Aittokallio and Jing Tang",
+         year = 2016,
+         journal = "Springer Protocol",
+         volume = "",
+         pages = "",
+         doi = "",
+         url = "",
+
+         textVersion = "He LY, Kulesskiy E, Saarela J et al (2016) Methods for High-Throughput Drug Combination Screening and Synergy Scoring. Springer Protocol (submitted)")
