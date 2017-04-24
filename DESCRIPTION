@@ -1,7 +1,7 @@
 Package: synergyfinder
 Type: Package
 Title: Calculate and Visualize Synergy Scores for Drug Combinations
-Version: 1.2.0
+Version: 1.3.0
 Date: 2016-04-15
 Author: Liye He <liye.he@helsinki.fi>, Jing Tang <jing.tang@helsinki.fi>
 Maintainer: Liye He <liye.he@helsinki.fi>
