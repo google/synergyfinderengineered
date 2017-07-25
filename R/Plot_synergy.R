@@ -29,7 +29,7 @@
 #' scores <- CalculateSynergy(data)
 #' PlotSynergy(scores, "2D")
 
-PlotSynergy <- function(data, type = "2D", save.file = FALSE, pair.index = NULL, legend.start = NULL, legend.end = NULL, x.range = NULL, y.range = NULL){
+PlotSynergy <- function(data, type = "2D", save.file = FALSE, len = 3, pair.index = NULL, legend.start = NULL, legend.end = NULL, col.range = NULL, row.range = NULL){
   if(!is.list(data)) {
     stop("Input data is not a list format!")
   }
@@ -41,82 +41,81 @@ PlotSynergy <- function(data, type = "2D", save.file = FALSE, pair.index = NULL,
       num.pairs <- pair.index
   }
   for (i in num.pairs) {
-    scores.dose <- t(scores[[i]])
+    scores.dose <- scores[[i]]
     drug.col <- drug.pairs$drug.col[i]
     drug.row <- drug.pairs$drug.row[i]
     
     scores.tmp <- scores.dose
-    if(!is.null(x.range)) {
-        if(x.range[1] == 1) {
-            scores.tmp <- scores.tmp[(x.range[1] + 1):x.range[2], ]
+    if(!is.null(col.range)) {
+        if(col.range[1] == 1) {
+            scores.tmp <- scores.tmp[, (col.range[1] + 1):col.range[2]]
         } else {
-            scores.tmp <- scores.tmp[x.range[1]:x.range[2], ]
-        }
-        
-    } else {
-      # delete the first row
-      scores.tmp <- scores.tmp[-1, ]
-    }
-    if(!is.null(y.range)) {
-        if(y.range[1] == 1) {
-            scores.tmp <- scores.tmp[, (y.range[1] + 1):y.range[2]]
-        } else {
-            scores.tmp <- scores.tmp[, y.range[1]:y.range[2]]
+            scores.tmp <- scores.tmp[,col.range[1]:col.range[2]]
         }
         
     } else {
       # delete the first column
       scores.tmp <- scores.tmp[, -1]
     }
+    if(!is.null(row.range)) {
+        if(row.range[1] == 1) {
+            scores.tmp <- scores.tmp[(row.range[1] + 1):row.range[2],]
+        } else {
+            scores.tmp <- scores.tmp[row.range[1]:row.range[2], ]
+        }
+        
+    } else {
+      # delete the first row
+      scores.tmp <- scores.tmp[-1, ]
+    }
 
     
-    #summary.score <- round(mean(scores.dose[-1, -1]), 3)
+    
     summary.score <- round(mean(scores.tmp, na.rm = TRUE), 3)
     # drug.col: the col-wise drug
     # drug.row: the row-wise drug
-    x.conc <- as.numeric(rownames(scores.dose))  ## col-wise drug concentration
-    y.conc <- as.numeric(colnames(scores.dose))  ## row-wise drug concentration
-
-    # drug.col.conc in index
-    x <- c(0:(length(x.conc) - 1))
-    # drug.row.conc in index
-    y <- c(0:(length(y.conc) - 1))
-
-    # smoothing by kriging
-    tmp <- cbind(expand.grid(x, y),c(as.matrix(scores.dose)))
-    x.vec <- tmp[, 1]
-    y.vec <- tmp[, 2]
-    scores.dose.vec = tmp[, 3]
-    #kriged = kriging(x.vec,y.vec,delta.dose.vec,lags=3,pixels=50)
-    pixels.num <- 5 * (length(x.conc) - 1) + 2
-    if (dim(scores.dose)[1] < 8) {
-      kriged <- kriging(x.vec, y.vec, scores.dose.vec,lags = 2, pixels = pixels.num, model = "spherical")
-    } else {
-      kriged <- kriging(x.vec, y.vec, scores.dose.vec,lags = 3, pixels = pixels.num, model = "spherical")
+    
+    # kriging with kriging from SpatialExtremes package!
+    
+    row.conc <- as.numeric(rownames(scores.dose))  ## concentrations on the row
+    col.conc <- as.numeric(colnames(scores.dose))  ## concentrations on the column
+    
+    nr <- nrow(scores.dose)
+    nc <- ncol(scores.dose)
+    
+    # coordinates for the predicted values of the matrix
+    
+    # len: how many values need to be predicted between two concentrations
+    pred.corx <- seq(1, nr, length = (nr - 1)*(len + 2) - (nr - 2)) 
+    pred.cory <- seq(1, nc, length = (nc - 1)*(len + 2) - (nc - 2))
+    pred.cor <- cbind(pred.corx, pred.cory)
+    data.cor <- cbind(rep(1:nr, each = nc), rep(1:nc, nr))
+    krig <- kriging(c(t(scores.dose)), data.cor, pred.cor, cov.mod = "whitmat", grid = TRUE, sill = 1, range = 10, smooth = 0.8)
+    scores.extended <- krig$krig.est
+    
+    rownames(scores.extended) <- pred.corx
+    colnames(scores.extended) <- pred.cory
+    
+    # get the subset of the extended matrix with predicted values
+    mat.tmp <- scores.extended
+    if(!is.null(col.range)){
+      # selecting cols
+      mat.tmp[, which(pred.cory >= col.range[1] & pred.cory <= col.range[2])]
     }
-    xseq <- round(kriged[["map"]]$x / kriged$pixel)
-    yseq <- round(kriged[["map"]]$y / kriged$pixel)
-    a <- min(xseq):max(xseq)
-    b <- min(yseq):max(yseq)
-    z.len <- length(kriged[["map"]]$pred) ## n
-    na <- length(a)
-    nb <- length(b)
-    res1 <- as.double(rep(0, na * nb)) ## c
-    res2 <- as.integer(rep(0,na * nb)) ## d
-    for(idx1 in 1:na) {
-      for(idx2 in 1:nb) {
-        for(idx3 in 1:z.len) {
-          if(xseq[idx3] == a[idx1] && yseq[idx3] == b[idx2]) {
-            res1[idx2+(idx1-1)*nb] <- kriged[["map"]]$pred[idx3]
-            res2[idx2+(idx1-1)*nb] <- 1
-            break
-          }
-        }
-      }
+    if(!is.null(row.range)){
+      # selecting rows
+      mat.tmp[which(pred.corx >= row.range[1] & pred.corx <= row.range[2]), ]
     }
-    res1[res2 == 0] <- NA
-    c <- matrix(res1, na, nb, byrow = TRUE)
-    plot.title <- paste(data$method,"synergy score:", summary.score, sep = " ")
+    
+    # the matrix for plotting
+    pp <- matrix(NA, nrow(mat.tmp)*ncol(mat.tmp), 3)
+    pp <- data.frame(pp)
+    colnames(pp) <- c("x", "y", "z")
+    pp$x <- rep(colnames(mat.tmp), each = nrow(mat.tmp))
+    pp$y <- rep(rownames(mat.tmp), ncol(mat.tmp))
+    pp$z <- c(mat.tmp)
+    
+    plot.title <- paste("Average synergy: ", summary.score, " (",data$method,")", sep = "")
 
     conc.unit <- drug.pairs$concUnit[i] ## concentration unit
     unit.text <- paste("(", conc.unit, ")", sep = "")
@@ -137,41 +136,53 @@ PlotSynergy <- function(data, type = "2D", save.file = FALSE, pair.index = NULL,
         end.point <- legend.end
     }
     
+    # colors
+    levels <- seq(start.point, end.point, by = 2)
+    col1 <- colorRampPalette(c('green', "#FFFFFF"))(length(which(levels<=0)))
+    col2 <- colorRampPalette(c("#FFFFFF", 'red'))(length(which(levels>=0)))
+    col <- c(col1, col2[-1])
+    
+    
     
 
-
     if (type == "3D") {
-      plots.3d <- c
-      if(!is.null(x.range)) {
-        row.start <- (x.range[1] - 1) * 5
-        row.end <- (x.range[2] - 1) * 5
-        plots.3d <- plots.3d[row.start:row.end, ]
+      # x-axis ticks settings
+      if(!is.null(col.range)) {
+        xaxis <- list(at = seq(1, ncol(mat.tmp), by = len + 1),
+                      labels = round(col.conc[col.range[1]:col.range[2]], 3))
+      } else {
+        xaxis <- list(at = seq(1, ncol(mat.tmp), by = len + 1),
+                      labels = round(col.conc, 3))
       }
-      if(!is.null(y.range)) {
-        col.start <- (y.range[1] - 1) * 5
-        col.end <- (y.range[2] - 1) * 5
-        plots.3d <- plots.3d[, col.start:col.end]
+      
+      # y-axis ticks settings
+      if(!is.null(row.range)) {
+        yaxis <- list(at = seq(1, nrow(mat.tmp), by = len + 1),
+                   labels = round(row.conc[row.range[1]:row.range[2]], 3))
+      } else {
+        yaxis <- list(at = seq(1, nrow(mat.tmp), by = len + 1),
+                   labels = round(row.conc, 3))
       }
-      x.conc1 <- x.conc
-      y.conc1 <- y.conc
-      if(!is.null(x.range)) {
-        x.conc1 <- x.conc1[x.range[1]:x.range[2]]
-      }
-      if(!is.null(y.range)) {
-        y.conc1 <- y.conc1[y.range[1]:y.range[2]]
-      }
-      fig <- wireframe(plots.3d,scales = list(arrows = FALSE,distance=c(0.8,0.8,0.8),col=1,cex=0.8,z = list(tick.number=7),x=list(at=seq(0, pixels.num, 5),labels=round(x.conc1, 1)),y=list(at=seq(0,pixels.num,5),labels=round(y.conc1,1))),
-                       drape = TRUE, colorkey = list(space="top",width=0.5),
+      
+      
+      par1 <- list(arrows=FALSE, distance=c(0.8,0.8,0.8), col = 1,
+                   cex = 0.8, z = list(tick.number = 6),
+                   x=xaxis, y = yaxis)
+      zlabs <- list(expression("Synergy score"), rot = 90, 
+                    cex = 1, axis.key.padding = 0)
+      xpar <- list(as.character(drug.col), cex = 1, rot = 20)
+      ypar <- list(as.character(drug.row), cex = 1, rot = -50)
+      
+      fig <- wireframe(t(mat.tmp),scales = par1,
+                       drape = TRUE, colorkey = list(space = "top",width = 0.5),
                        screen = list(z = 30, x = -55),
-                       zlab=list(expression("Synergy score"),rot=90,cex=1,axis.key.padding = 0),xlab=list(as.character(drug.col),cex=1, rot=20),ylab=list(as.character(drug.row),cex=1,rot=-50),
-                       zlim=c(start.point, end.point),
-                       col.regions=colorRampPalette(c("green","white","red"))(100),
+                       zlab = zlabs, xlab = xpar, ylab = ypar,
+                       zlim = c(start.point, end.point),
+                       col.regions = col,
                        main = plot.title,
-                       at=do.breaks(c(start.point, end.point),100),
+                       at = do.breaks(c(start.point, end.point), length(col)),
                        par.settings = list(axis.line=list(col="transparent")),
-                       zoom = 1, aspect = 1
-                       #par.settings=list(layout.widths=list(left.padding=0,right.padding=0), layout.heights=list(top.padding=0, bottom.padding=0)) # margin
-      )
+                       zoom = 1, aspect = 1)
       print(fig)
       fig <- recordPlot()
     } else if (type == "2D") {
