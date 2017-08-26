@@ -8,16 +8,17 @@
 #' or both. By default, 2D interaction landscape is returned.
 #' @param save.file a logical parameter to specify if the interaction landscape is saved as a pdf file
 #' in the current working directory or returned as an R object. By default, it is FALSE.
+#' @param len a parameter to specify how many values need to be predicted between two concentrations
 #' @param pair.index a parameter to specify which drug combination if there are many drug combinations in the data.
 #' By default, it is NULL so that the synergy score visualization of all the drug combinations in the data is returned.
 #' @param legend.start a parameter to specify the starting point of the legend. By defualt, it is NULL so the legend 
 #' starting point is fixed by the data automatically.
 #' @param legend.end a parameter to specify the ending point of the legend. By defualt, it is NULL so the legend 
 #' ending point is fixed by the data automatically.
-#' @param x.range a parameter to specify the starting and ending concentration of the drug on x-axis. Use e.g., c(1, 3) to 
+#' @param col.range a parameter to specify the starting and ending concentration of the drug on x-axis. Use e.g., c(1, 3) to 
 #' specify that only from 1st to 3rd concentrations of the drug on x-axis are used. By default, it is NULl so all the 
 #' concentrations are used.
-#' @param y.range a parameter to specify the starting and ending concentration of the drug on y-axis. Use e.g., c(1, 3) to 
+#' @param row.range a parameter to specify the starting and ending concentration of the drug on y-axis. Use e.g., c(1, 3) to 
 #' specify that only from 1st to 3rd concentrations of the drug on y-axis are used. By default, it is NULl so all the 
 #' concentrations are used.
 #' @return a pdf file or the interaction landscapes are only displayed depending on
@@ -29,7 +30,7 @@
 #' scores <- CalculateSynergy(data)
 #' PlotSynergy(scores, "2D")
 
-PlotSynergy <- function(data, type = "2D", save.file = FALSE, len = 3, pair.index = NULL, legend.start = NULL, legend.end = NULL, col.range = NULL, row.range = NULL){
+PlotSynergy <- function(data, type = "2D", save.file = FALSE, len = 3, pair.index = NULL, legend.start = NULL, legend.end = NULL, row.range = NULL, col.range = NULL){
   if(!is.list(data)) {
     stop("Input data is not a list format!")
   }
@@ -48,6 +49,7 @@ PlotSynergy <- function(data, type = "2D", save.file = FALSE, len = 3, pair.inde
     scores.tmp <- scores.dose
     if(!is.null(col.range)) {
         if(col.range[1] == 1) {
+            # the first column is not included while calculating the average score
             scores.tmp <- scores.tmp[, (col.range[1] + 1):col.range[2]]
         } else {
             scores.tmp <- scores.tmp[,col.range[1]:col.range[2]]
@@ -59,6 +61,7 @@ PlotSynergy <- function(data, type = "2D", save.file = FALSE, len = 3, pair.inde
     }
     if(!is.null(row.range)) {
         if(row.range[1] == 1) {
+            # the first row is not included while calculating the average score
             scores.tmp <- scores.tmp[(row.range[1] + 1):row.range[2],]
         } else {
             scores.tmp <- scores.tmp[row.range[1]:row.range[2], ]
@@ -189,116 +192,115 @@ PlotSynergy <- function(data, type = "2D", save.file = FALSE, len = 3, pair.inde
       dev.new(noRStudioGD = TRUE)
       layout(matrix(c(1, 2), nrow = 2L, ncol = 1L), heights = c(0.1, 1))
       par(mar = c(0, 6.1, 2.1, 4.1))
-      suppressWarnings(par(mgp = c(3, -0.4, 0)))
-      levels <- seq(start.point, end.point, by = 2)
-      col <- colorpanel(end.point, low = "green", mid = "white", high = "red")
+      suppressWarnings(par(mgp = c(3, -1.5, 0)))
+      #levels <- seq(start.point, end.point, by = 2)
+      #col <- colorpanel(end.point, low = "green", mid = "white", high = "red")
       plot.new()
       plot.window(ylim = c(0, 1), xlim = range(levels), xaxs = "i", yaxs = "i")
       rect(levels[-length(levels)],0, levels[-1L],0.3, col = col, border = NA)
       axis(3,tick = FALSE, at = do.breaks(c(start.point, end.point), end.point/10))
       title(plot.title)
-      par(mar = c(5.1,4.1,2.1,2.1))
+      par(mar = c(5.1,4.1,1.1,2.1))
       suppressWarnings(par(mgp = c(2,1,0)))
       plot.new()
-      if(!is.null(x.range)) {
-        row.start <- (x.range[1] - 1) * 5
-        row.end <- (x.range[2] - 1) * 5
-        c <- c[row.start:row.end, ]
-      }
-      if(!is.null(y.range)) {
-        col.start <- (y.range[1] - 1) * 5
-        col.end <- (y.range[2] - 1) * 5
-        c <- c[, col.start:col.end]
-      }
-      x.2D <- (1:dim(c)[1] - 1) / (dim(c)[1] - 1)
-      y.2D <- (1:dim(c)[2] - 1) / (dim(c)[2] - 1)
+      mat.tmp <- t(mat.tmp)
+      x.2D <- (1:dim(mat.tmp)[1] - 1) / (dim(mat.tmp)[1] - 1)
+      y.2D <- (1:dim(mat.tmp)[2] - 1) / (dim(mat.tmp)[2] - 1)
       plot.window(asp = NA, xlim = range(x.2D), ylim = range(y.2D), "", xaxs = "i", yaxs = "i")
-      .filled.contour(x.2D, y.2D, z = c, levels, col = col)
-      #grid(dim(c)[1] - 1, dim(c)[2] - 1, col = "gray", lty = "solid", lwd = 0.3)
+      .filled.contour(x.2D, y.2D, z = mat.tmp, levels, col = col)
+      # #grid(dim(c)[1] - 1, dim(c)[2] - 1, col = "gray", lty = "solid", lwd = 0.3)
       box()
       mtext(drug.col, 1, cex = 1, padj = 3)
       mtext(drug.row, 2, cex = 1, las = 3, padj = -3)
-      if(!is.null(x.range)) {
-        x.conc <- x.conc[x.range[1]:x.range[2]]
+      if(!is.null(row.range)) {
+        yconc <- round(row.conc[row.range[1]:row.range[2]], 3)
+      } else {
+        yconc <- round(row.conc, 3)
       }
-      if(!is.null(y.range)) {
-        y.conc <- y.conc[y.range[1]:y.range[2]]
+      
+      if(!is.null(col.range)) {
+        xconc <- round(col.conc[col.range[1]:col.range[2]], 3)
+      } else {
+        xconc <- round(col.conc, 3)
       }
-      axis(side = 1, at = seq(0, 1, by = 1/(length(x.conc) - 1)), labels = round(x.conc, 1))
-      axis(side = 2, at = seq(0, 1, by = 1/(length(y.conc) - 1)), labels = round(y.conc, 1))
+
+      axis(side = 1, at = seq(0, 1, by = 1/(length(xconc) - 1)), labels = xconc)
+      axis(side = 2, at = seq(0, 1, by = 1/(length(yconc) - 1)), labels = yconc)
       fig <- recordPlot()
       dev.off()
     } else {
-        plots.3d <- c
-        if(!is.null(x.range)) {
-            row.start <- (x.range[1] - 1) * 5
-            row.end <- (x.range[2] - 1) * 5
-            plots.3d <- plots.3d[row.start:row.end, ]
-        }
-        if(!is.null(y.range)) {
-            col.start <- (y.range[1] - 1) * 5
-            col.end <- (y.range[2] - 1) * 5
-            plots.3d <- plots.3d[, col.start:col.end]
-        }
-        x.conc1 <- x.conc
-        y.conc1 <- y.conc
-        if(!is.null(x.range)) {
-            x.conc1 <- x.conc1[x.range[1]:x.range[2]]
-        }
-        if(!is.null(y.range)) {
-            y.conc1 <- y.conc1[y.range[1]:y.range[2]]
-        }
-      syn.3d.plot <- wireframe(plots.3d,scales = list(arrows = FALSE,distance=c(0.8,0.8,0.8),col=1,cex=0.8,z = list(tick.number=7),x=list(at=seq(0, pixels.num, 5),labels=round(x.conc1, 1)),y=list(at=seq(0,pixels.num,5),labels=round(y.conc1,1))),
-                               drape = TRUE, colorkey = list(space="top",width=0.5),
-                               screen = list(z = 30, x = -55),
-                               zlab=list(expression("Synergy score"),rot=90,cex=1,axis.key.padding = 0),xlab=list(as.character(drug.col),cex=1, rot=20),ylab=list(as.character(drug.row),cex=1,rot=-50),
-                               zlim=c(start.point, end.point),
-                               col.regions=colorRampPalette(c("green","white","red"))(100),
-                               main = plot.title,
-                               at=do.breaks(c(start.point, end.point),100),
-                               par.settings = list(axis.line=list(col="transparent")),
-                               zoom = 1, aspect = 1
-                               #par.settings=list(layout.widths=list(left.padding=0,right.padding=0), layout.heights=list(top.padding=0, bottom.padding=0)) # margin
-      )
+      # 3d plot
+      # x-axis ticks settings
+      if(!is.null(col.range)) {
+        xaxis <- list(at = seq(1, ncol(mat.tmp), by = len + 1),
+                      labels = round(col.conc[col.range[1]:col.range[2]], 3))
+      } else {
+        xaxis <- list(at = seq(1, ncol(mat.tmp), by = len + 1),
+                      labels = round(col.conc, 3))
+      }
+      
+      # y-axis ticks settings
+      if(!is.null(row.range)) {
+        yaxis <- list(at = seq(1, nrow(mat.tmp), by = len + 1),
+                      labels = round(row.conc[row.range[1]:row.range[2]], 3))
+      } else {
+        yaxis <- list(at = seq(1, nrow(mat.tmp), by = len + 1),
+                      labels = round(row.conc, 3))
+      }
+      
+      
+      par1 <- list(arrows=FALSE, distance=c(0.8,0.8,0.8), col = 1,
+                   cex = 0.8, z = list(tick.number = 6),
+                   x=xaxis, y = yaxis)
+      zlabs <- list(expression("Synergy score"), rot = 90, 
+                    cex = 1, axis.key.padding = 0)
+      xpar <- list(as.character(drug.col), cex = 1, rot = 20)
+      ypar <- list(as.character(drug.row), cex = 1, rot = -50)
+      
+      syn.3d.plot <- wireframe(t(mat.tmp),scales = par1,
+                       drape = TRUE, colorkey = list(space = "top",width = 0.5),
+                       screen = list(z = 30, x = -55),
+                       zlab = zlabs, xlab = xpar, ylab = ypar,
+                       zlim = c(start.point, end.point),
+                       col.regions = col,
+                       main = plot.title,
+                       at = do.breaks(c(start.point, end.point), length(col)),
+                       par.settings = list(axis.line=list(col="transparent")),
+                       zoom = 1, aspect = 1)
+      # 2d plot
       layout(matrix(c(1, 2, 3, 3), nrow = 2L, ncol = 2L), heights = c(0.1, 1))
       par(mar = c(0, 6.1, 2.1, 4.1))
-      suppressWarnings(par(mgp = c(3, -1, 0)))
-      levels <- seq(start.point, end.point, by = 2)
-      col <- colorpanel(end.point, low = "green", mid = "white", high = "red")
+      suppressWarnings(par(mgp = c(3, -0.8, 0)))
       plot.new()
       plot.window(ylim = c(0, 1), xlim = range(levels), xaxs = "i", yaxs = "i")
       rect(levels[-length(levels)],0, levels[-1L],0.3, col = col, border = NA)
       axis(3,tick = FALSE, at = do.breaks(c(start.point, end.point), end.point/10))
       title(plot.title)
-      par(mar = c(5.1,4.1,2.1,2.1))
+      par(mar = c(5.1,4.1,1.1,2.1))
       suppressWarnings(par(mgp = c(2,1,0)))
       plot.new()
-      if(!is.null(x.range)) {
-          row.start <- (x.range[1] - 1) * 5
-          row.end <- (x.range[2] - 1) * 5
-          c <- c[row.start:row.end, ]
-      }
-      if(!is.null(y.range)) {
-          col.start <- (y.range[1] - 1) * 5
-          col.end <- (y.range[2] - 1) * 5
-          c <- c[, col.start:col.end]
-      }
-      x.2D <- (1:dim(c)[1] - 1) / (dim(c)[1] - 1)
-      y.2D <- (1:dim(c)[2] - 1) / (dim(c)[2] - 1)
+      mat.tmp <- t(mat.tmp)
+      x.2D <- (1:dim(mat.tmp)[1] - 1) / (dim(mat.tmp)[1] - 1)
+      y.2D <- (1:dim(mat.tmp)[2] - 1) / (dim(mat.tmp)[2] - 1)
       plot.window(asp = NA, xlim = range(x.2D), ylim = range(y.2D), "", xaxs = "i", yaxs = "i")
-      .filled.contour(x.2D, y.2D, z = c, levels, col = col)
-      #grid(dim(c)[1] - 1, dim(c)[2] - 1, col = "gray", lty = "solid", lwd = 0.3)
+      .filled.contour(x.2D, y.2D, z = mat.tmp, levels, col = col)
       box()
       mtext(drug.col, 1, cex = 1, padj = 3)
       mtext(drug.row, 2, cex = 1, las = 3, padj = -3)
-      if(!is.null(x.range)) {
-          x.conc <- x.conc[x.range[1]:x.range[2]]
+      if(!is.null(row.range)) {
+        yconc <- round(row.conc[row.range[1]:row.range[2]], 3)
+      } else {
+        yconc <- round(row.conc, 3)
       }
-      if(!is.null(y.range)) {
-          y.conc <- y.conc[y.range[1]:y.range[2]]
+      
+      if(!is.null(col.range)) {
+        xconc <- round(col.conc[col.range[1]:col.range[2]], 3)
+      } else {
+        xconc <- round(col.conc, 3)
       }
-      axis(side = 1, at = seq(0, 1, by = 1/(length(x.conc) - 1)), labels = round(x.conc, 1))
-      axis(side = 2, at = seq(0, 1, by = 1/(length(y.conc) - 1)), labels = round(y.conc, 1))
+      
+      axis(side = 1, at = seq(0, 1, by = 1/(length(xconc) - 1)), labels = xconc)
+      axis(side = 2, at = seq(0, 1, by = 1/(length(yconc) - 1)), labels = yconc)
       print(syn.3d.plot, position = c(0.5,0, 1, 1), newpage = FALSE)
       fig <- recordPlot()
     }

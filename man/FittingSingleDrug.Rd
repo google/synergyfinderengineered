@@ -30,10 +30,9 @@ data("mathews_screening_data")
 data <- ReshapeData(mathews_screening_data)
 single.drug.fitted <- FittingSingleDrug(data$dose.response.mats[[1]])
 }
-\author{
-Liye He \email{liye.he@helsinki.fi}
-}
 \references{
 Seber, G. A. F. and Wild, C. J (1989) Nonlinear Regression, New York: Wiley \& Sons (p. 330).
 }
-
+\author{
+Liye He \email{liye.he@helsinki.fi}
+}

@@ -39,4 +39,3 @@ PlotDoseResponse(data)
 \author{
 Liye He \email{liye.he@helsinki.fi}
 }
-

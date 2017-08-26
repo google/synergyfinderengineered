@@ -33,4 +33,3 @@ data <- BaselineCorrectionSD(data$dose.response.mats[[1]])
 \author{
 Liye He \email{liye.he@helsinki.fi}, Jing Tang \email{jing.tang@helsinki.fi}
 }
-

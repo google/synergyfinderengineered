@@ -32,11 +32,10 @@ data("mathews_screening_data")
 data <- ReshapeData(mathews_screening_data)
 delta.score <- ZIP(data$dose.response.mats[[1]])
 }
-\author{
-Liye He \email{liye.he@helsinki.fi}, Jing Tang \email{jing.tang@helsinki.fi}
-}
 \references{
 Yadav B, Wennerberg K, Aittokallio T, Tang J. Searching for Drug Synergy in Complex Dose-Response Landscape Using an Interaction Potency Model.
 Computational and Structural Biotechnology Journal 2015; 13: 504-513.
 }
-
+\author{
+Liye He \email{liye.he@helsinki.fi}, Jing Tang \email{jing.tang@helsinki.fi}
+}

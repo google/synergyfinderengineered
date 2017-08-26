@@ -30,4 +30,3 @@ data <- ReshapeData(mathews_screening_data)
 \author{
 Liye He \email{liye.he@helsinki.fi}
 }
-
