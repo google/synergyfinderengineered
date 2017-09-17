@@ -123,14 +123,15 @@ PlotSynergy <- function(data,
                -1))
 }
 
+
+
 # Returns a string that may be used as a plot title.  The string includes
 # the mean value of all scores in the selected ranges, and the name of the
-# method used to compute them.
+# method used to compute them.  The first row and column are always removed, on
+# these assumptions:
+#  1. For each drug, the first recorded effect is for dose=0.
+#  2. When dose=0 for either drug (monotherapy), the synergy score is also 0.
 .ComputePlotTitle <- function(scores.dose, row.range, col.range, data.method) {
-  # The first row and column are removed no matter what,
-  # presumably (? TODO/REVIEW) on the assumptions that:
-  #  1. For each drug, the first recorded effect is for dose=0.
-  #  2. When dose=0 for either drug, the synergy score is also 0.
   return(paste("Average synergy: ",
                round(mean(scores.dose[.SliceAtLeastFirst(row.range),
                                       .SliceAtLeastFirst(col.range)],
