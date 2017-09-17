@@ -6,7 +6,7 @@ Date: 2016-04-15
 Author: Liye He <liye.he@helsinki.fi>, Jing Tang <jing.tang@helsinki.fi>,
         David L. Roxe <dlroxe@google.com>
 Maintainer: Liye He <liye.he@helsinki.fi>
-Imports: drc (>= 2.5-12), reshape2 (>= 1.4.1), SpatialExtremes,
+Imports: drc (>= 2.5-12), reshape2 (>= 1.4.1), SpatialExtremes (>= 2.0-2),
         ggplot2 (>= 2.1.0), gridBase (>= 0.4-7), grid (>= 3.2.4),
         lattice (>= 0.20-33), gplots (>= 3.0.0), nleqslv(>= 3.0), stats
         (>= 3.3.0), graphics (>= 3.3.0), grDevices (>= 3.3.0)
@@ -16,7 +16,7 @@ Description: Efficient implementations for all the popular synergy scoring
              or a three-dimensional interaction surface over the dose matrix.
 License: Artistic License 2.0
 LazyData: TRUE
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 biocViews: Software, Statistical Method
