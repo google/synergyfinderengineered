@@ -1,7 +1,3 @@
-library(SpatialExtremes)
-library(gplots)
-library(lattice)
-
 #' Drug interaction landscape
 #'
 #' A function to visualize the synergy scores for drug combinations as 2D or 3D
