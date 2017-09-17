@@ -1,5 +1,3 @@
-library("testthat")
-
 test_that("color_ranges_from_green_to_white_to_red", {
   expected_colors <-
     c("#00FF00", "#3FFF3F", "#7FFF7F", "#BFFFBF", # 00ff00 is green
