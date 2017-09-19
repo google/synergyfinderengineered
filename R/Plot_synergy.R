@@ -166,18 +166,19 @@ PlotSynergy <- function(data,
 # lists whose first two elements are range endpoints, and whose remaining
 # elements (if any) are ignored.
 .ApplyRanges <- function(data, row.range, col.range) {
-  .RangeWithDefault <- function(range, default) {
-    # TODO/REVIEW: The code checked into GitHub at the time this function was
-    # written modified each element of each range with the transformation x ->
-    # (x-1)*5. It had no examples that used ranges.  The transform seemed out of
-    # place and is omitted here.
-    return(if(is.null(range)) default else range[1]:range[2])
-  }
   # Default value is 'remove the element just after the end of the list',
   # for each dimension of the array (a no-op that permits cleaner syntax).
   return(data[.RangeWithDefault(row.range, default=-(nrow(data)+1)),
               .RangeWithDefault(col.range, default=-(ncol(data)+1))])
 }
+
+# If 'range' is NULL, return 'default', otherwise return a slice.
+# The endpoints of the slice are determined by assuming 'range' is a list, and
+# picking its first two elements.  Any additional elements are ignored.
+.RangeWithDefault <- function(range, default) {
+  return(if(is.null(range)) default else range[1]:range[2])
+}
+
 
 # TODO/REVIEW: The original logic checked into GitHub at the time this function
 # was written used flipped argument order for data.coord and krig.coord.
@@ -195,6 +196,10 @@ PlotSynergy <- function(data,
   #      of scores.dose
   nr <- nrow(scores.dose)
   nc <- ncol(scores.dose)
+  # Note, not all kriging implementations are suitable for all purposes.  In
+  # particular, SpatialExtremes offers an implementation that works with small
+  # data sets.  Earlier versions of this implementation that used other kriging
+  # packages only worked well with large ones.
   return(SpatialExtremes::kriging(
     data = c(scores.dose),
     data.coord = cbind(rep(1:nc, nr), rep(1:nr, each = nc)),
