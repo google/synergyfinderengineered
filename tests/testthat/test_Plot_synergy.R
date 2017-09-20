@@ -33,6 +33,7 @@ test_that("apply_ranges_works", {
   # Various ways to apply ranges that change nothing.
   expect_equal(data, .ApplyRanges(data, NULL, NULL))    # no ranges
   expect_equal(data, .ApplyRanges(data, c(1,3), NULL))  # full row range
+  expect_equal(data, .ApplyRanges(data, c(1,3,99), NULL))  # spurious
   expect_equal(data, .ApplyRanges(data, NULL, c(1,3)))  # full col range
   expect_equal(data, .ApplyRanges(data, c(1,3), c(1,3))) # both full ranges
 

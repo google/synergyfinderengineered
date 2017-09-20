@@ -164,7 +164,9 @@ PlotSynergy <- function(data,
 # either range is NULL, the data for the corresponding axis of 'data' is
 # returned in full.  The row.range and col.range inputs are each treated as
 # lists whose first two elements are range endpoints, and whose remaining
-# elements (if any) are ignored.
+# elements (if any) are ignored.  An error results if the bounds of 'row.range'
+# or 'col.range' lie outside the dimensions of 'data' (e.g. 'data' is a 3x3
+# matrix, but rows 1-5 are requested).
 .ApplyRanges <- function(data, row.range, col.range) {
   # Default value is 'remove the element just after the end of the list',
   # for each dimension of the array (a no-op that permits cleaner syntax).
