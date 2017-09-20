@@ -7,6 +7,7 @@ test_that("color_ranges_from_green_to_white_to_red", {
 })
 
 test_that("slice_at_least_first_works", {
+  expect_equal(-1, .SliceAtLeastFirst(NULL))
   expect_equal(2:5, .SliceAtLeastFirst(c(-1,5)))  # pathological case
   expect_equal(2:5, .SliceAtLeastFirst(c(0,5)))   # degenerate case
   expect_equal(2:5, .SliceAtLeastFirst(c(1,5)))
