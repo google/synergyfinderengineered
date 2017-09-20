@@ -10,7 +10,7 @@ Imports: drc (>= 2.5-12), reshape2 (>= 1.4.1), SpatialExtremes (>= 2.0-2),
         lattice (>= 0.20-33), gplots (>= 3.0.0), nleqslv(>= 3.0), stats
         (>= 3.3.0), graphics (>= 3.3.0), grDevices (>= 3.3.0)
 Description: Efficient implementations for all the popular synergy scoring models for drug combinations, including HSA, Loewe, Bliss and ZIP and visualization of the synergy scores as either a two-dimensional or a three-dimensional interaction surface over the dose matrix.
-License: Artistic License 2.0
+License: MIT + file LICENSE
 LazyData: TRUE
 RoxygenNote: 6.0.1
 Suggests: knitr, rmarkdown
