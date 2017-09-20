@@ -168,8 +168,8 @@ PlotSynergy <- function(data,
 .ApplyRanges <- function(data, row.range, col.range) {
   # Default value is 'remove the element just after the end of the list',
   # for each dimension of the array (a no-op that permits cleaner syntax).
-  return(data[.RangeWithDefault(row.range, default=-(nrow(data)+1)),
-              .RangeWithDefault(col.range, default=-(ncol(data)+1))])
+  return(data[.RangeWithDefault(row.range, default = -(nrow(data)+1)),
+              .RangeWithDefault(col.range, default = -(ncol(data)+1))])
 }
 
 # If 'range' is NULL, return 'default', otherwise return a slice.
@@ -282,8 +282,8 @@ PlotSynergy <- function(data,
   print(
     lattice::wireframe(
       x = mat.tmp,
-      scales = list(arrows=FALSE,
-                    distance=c(0.8,0.8,0.8),
+      scales = list(arrows = FALSE,
+                    distance = c(0.8,0.8,0.8),
                     col = 1,
                     cex = 0.8,
                     z = list(tick.number = 6),
@@ -294,12 +294,12 @@ PlotSynergy <- function(data,
       drape = TRUE,
       colorkey = list(space="top",width=0.5),
       screen = list(z = 30, x = -55),
-      zlab=list(expression("Synergy score"),rot=90,cex=1,axis.key.padding=0),
-      xlab=list(as.character(drug.col),cex=1, rot=20),
-      ylab=list(as.character(drug.row),cex=1,rot=-50),
-      zlim=c(start.point, end.point),
+      zlab = list(expression("Synergy score"),rot=90,cex=1,axis.key.padding=0),
+      xlab = list(as.character(drug.col),cex=1, rot=20),
+      ylab = list(as.character(drug.row),cex=1,rot=-50),
+      zlim = c(start.point, end.point),
       # .GetColors(-100,100) =~ colorRampPalette(c("green","white","red"))(101)
-      col.regions=.GetColors(-100,100),
+      col.regions = .GetColors(-100,100),
       main = plot.title,
       at=lattice::do.breaks(c(start.point, end.point),100),
       par.settings = list(axis.line=list(col="transparent")),
