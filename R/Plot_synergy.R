@@ -219,13 +219,13 @@ PlotSynergy <- function(data,
                     drug.row, drug.col, start.point, end.point) {
   # Note a different layout() here than in .PlotAll()
   layout(matrix(c(1, 2), nrow = 2L, ncol = 1L), heights = c(0.1, 1))
-  .Plot2DTitle(plot.title, start.point, end.point)
+  .Plot2DTitleAndLegend(plot.title, start.point, end.point)
   .Plot2DContourMap(
     mat.tmp, row.conc, col.conc, drug.row, drug.col, start.point, end.point)
   return(recordPlot())
 }
 
-.Plot2DTitle <- function (plot.title, start.point, end.point) {
+.Plot2DTitleAndLegend <- function (plot.title, start.point, end.point) {
   par(mar = c(0, 6.1, 2.1, 4.1))
   suppressWarnings(par(mgp = c(3, -1, 0)))
   levels <- seq(start.point, end.point, by = 2)
@@ -318,7 +318,7 @@ PlotSynergy <- function(data,
   start.point, end.point) {
   # Note a different layout() here than in .Plot2D().
   layout(matrix(c(1, 2, 3, 3), nrow = 2L, ncol = 2L), heights = c(0.1, 1))
-  .Plot2DTitle(plot.title, start.point, end.point)
+  .Plot2DTitleAndLegend(plot.title, start.point, end.point)
   .Plot2DContourMap(
     mat.tmp, row.conc, col.conc, drug.row, drug.col, start.point, end.point)
   .Plot3D(plot.title, mat.tmp, len, row.conc, col.conc, drug.row, drug.col,
