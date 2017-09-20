@@ -202,7 +202,7 @@ PlotSynergy <- function(data,
   # packages only worked well with large ones.
   return(SpatialExtremes::kriging(
     data = c(scores.dose),
-    data.coord = cbind(rep(1:nc, nr), rep(1:nr, each = nc)),
+    data.coord = cbind(rep(1:nr, nc), rep(1:nc, each = nr)),
     krig.coord = cbind(seq(1, nc, length = (nc - 1)*(len + 2) - (nc - 2)),
                        seq(1, nr, length = (nr - 1)*(len + 2) - (nr - 2))),
     cov.mod = "whitmat",
