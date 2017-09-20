@@ -59,7 +59,6 @@ test_that("extended_scores_works", {
   # value to the next.
   data <- matrix(c(1,2,
                    3,4), nrow=2, ncol=2, byrow=TRUE)
-  print(c(data))
   extended_data <- matrix(c( 1.00, 1.33, 1.69, 2.00,
                              1.65, 1.98, 2.33, 2.65,
                              2.36, 2.69, 3.05, 3.36,
