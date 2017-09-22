@@ -14,7 +14,7 @@ Description: Efficient implementations for all the popular synergy scoring
              models for drug combinations, including HSA, Loewe, Bliss and ZIP
              and visualization of the synergy scores as either a two-dimensional
              or a three-dimensional interaction surface over the dose matrix.
-License: Artistic License 2.0
+License: MIT + file LICENSE
 LazyData: TRUE
 RoxygenNote: 6.0.1
 Suggests: knitr, rmarkdown
