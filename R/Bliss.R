@@ -1,3 +1,10 @@
+# Copyright 2018 Google LLC
+#
+# Use of this source code is governed by a MIT-style
+# license that can be found in the LICENSE file or at
+# https://opensource.org/licenses/MIT.
+#
+
 #' Synergy score based on Bliss model
 #'
 #' A function to calculate synergy score based on Bliss model

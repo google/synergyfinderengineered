@@ -1,3 +1,10 @@
+# Copyright 2018 Google LLC
+#
+# Use of this source code is governed by a MIT-style
+# license that can be found in the LICENSE file or at
+# https://opensource.org/licenses/MIT.
+#
+
 #' Fitting single drug dose-response curve
 #'
 #' A function to fit single drug dose-response curve with observed response data

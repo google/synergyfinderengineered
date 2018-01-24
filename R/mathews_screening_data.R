@@ -1,3 +1,9 @@
+# Copyright 2018 Google LLC
+#
+# Use of this source code is governed by a MIT-style
+# license that can be found in the LICENSE file or at
+# https://opensource.org/licenses/MIT.
+
 #' A high-throughput drug combination screening data
 #'
 #' A recent drug combination screening for the treatment of diffuse large B-cell

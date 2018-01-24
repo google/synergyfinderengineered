@@ -1,3 +1,9 @@
+# Copyright 2018 Google LLC
+#
+# Use of this source code is governed by a MIT-style
+# license that can be found in the LICENSE file or at
+# https://opensource.org/licenses/MIT.
+
 #' Baseline correction for the dose-response matrix of drug combinations
 #'
 #' A function to do baseline correction on the dose-response matrix for drug combinations with a weighted correction fator

@@ -1,3 +1,11 @@
+# Copyright 2018 Google LLC
+#
+# Use of this source code is governed by a MIT-style
+# license that can be found in the LICENSE file or at
+# https://opensource.org/licenses/MIT.
+#
+#
+
 #' HSA synergy score based on highest single agent (HSA) model
 #'
 #' A function to calculate HSA synergy score based on HSA model
