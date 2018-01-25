@@ -65,44 +65,48 @@ The function \textit{PlotDoseResponse} fits a four-parameter log-logistic model 
 <<fig.show='hide'>>=
   PlotDoseResponse(dose.response.mat)
 @
-The PlotDoseResponse function also provides a high-resolution pdf file by adding the \textit{save.file} parameter:
+The PlotDoseResponse function outputs a high-resolution pdf file if the \textit{save.file} parameter is TRUE:
 <<fig.show='hide'>>=
   PlotDoseResponse(dose.response.mat, save.file = TRUE)
 @
 The pdf files will be saved under the current work directory with the syntax: "drug1.drug2.dose.response.blockID.pdf".
-  
-\begin{figure}[h!]
+
+\begin{figure}[ht!]
   \label{dose}
-  \includegraphics[width=1\textwidth]{"ispinesib.ibrutinib.dose.response.1"}
-  \includegraphics[width=1\textwidth]{"canertinib.ibrutinib.dose.response.2"}
+  \includegraphics[width=1\textwidth]{ispinesib.ibrutinib.dose.response.1.pdf}
+  \includegraphics[width=1\textwidth]{canertinib.ibrutinib.dose.response.2.pdf}
   \caption{\textbf{Plots for single drug dose-response curves and drug combination dose-response matrices.} (A) The ibrutinib and ispinesib combination. (B) The ibrutinib and canertinib combination. Left panel: single drug dose-response curves fitted with the commonly-used 4-parameter log-logistic (4PL) function. Right panel: the raw dose-response matrix data is visualized as a heatmap. }
-\end{figure}  
+\end{figure}
 
 The PlotDoseResponse function also provides other parameters for users to adjust the output. For instance, the parameter \textit{pair.index} allows users to choose which pair of drugs to visualize and the parameters \textit{...} are further graphical parameters from the default plot function in R.
 
 \section{Drug synergy scoring}
 The current synergyfinder package provides the synergy scores of four major reference models, including HSA, Loewe, Bliss and ZIP. Let’s consider a drug combination experiment where drug 1 at dose $x_{1}$is combined with drug 2 at dose $x_2$. The effect of such a combination is $y_c$ as compared to the monotherapy effect $y_1(x_{1})$ and $y_2(x_{2})$. To be able to quantify the degree of drug interactions, one needs to determine the deviation of $y_c$ from the expected effect $y_e$ of non-interaction, which is calculated in different ways with the reference models.
-  
+
 \begin{itemize}
-  \item HSA: $y_e$ is the effect of the highest monotherapy effect, i.e. $y_e = max(y_1, y_2)$.
-  \item Loewe: $y_e$ is the effect as if a drug is combined with itself, i.e. $y_e = y_1(x_1+x_2)=y_2(x_1+x_2)$.
+  \item HSA: $y_e$ is the highest monotherapy effect, i.e. $y_e = max(y_1, y_2)$.
+  \item Loewe: $y_e$ is the drug effect as if combined with itself, i.e. $y_e = y_1(x_1+x_2)=y_2(x_1+x_2)$.
   \item Bliss: $y_e$ is the effect as if the two drugs are acting independently on the phenotype, i.e. $y_2=y_1+y_2-y_1y_2$.
   \item ZIP: $y_e$ is the effect as if the two drugs do not potentiate each other, i.e. both the assumptions of the Loewe model and the Bliss model are met.
 \end{itemize}
-  
-Once $y_e$ can be determined, the synergy score can be calculated as the difference between the observed effect and the expected effect. Depending on whether or the drug combination can be classified as synergistic or antagonist, respectively. Furthermore, as the input data has been normalized as \%inhibition values then the synergy score can be directly interpreted as the proportion of cellular responses that can be attributed to the drug interactions.
-\\ \\
-For a given dose-response matrix, one need to first choose what reference model to use and then apply the \textit{CalculateSynergy} function to calculate the corresponding synergy score at each dose combination. For example, the ZIP-based synergy score for the example data can be obtained by typing:
+
+Once $y_e$ can be determined, the synergy score can be calculated as the difference between the observed effect and the expected effect. For a given dose-response matrix, apply the \textit{CalculateSynergy} function with the desired reference model to calculate the corresponding synergy score at each dose
+combination.  Because the input data has been normalized as \%inhibition values, the resulting synergy
+scores can be directly interpreted as the proportion of cellular responses attributable to drug interactions.
+The ZIP-based synergy scores for the example data can be obtained with the following directive:
 <<>>=
   synergy.score <- CalculateSynergy(data = dose.response.mat,
-                                      method = "ZIP",
-                                      correction = TRUE,
-                                      Emin = 0, Emax = 100)
+                                    method = "ZIP",
+                                    correction = TRUE,
+                                    Emin = 0, Emax = 100)
 @
-The parameters \textit{Emin} and \textit{Emax} specify the minimal and maximal effect of the drug for fitting the four-parameter log-logistic model. In the above example command, the minimal effect is fixed to 0 and the maximal effect is fixed to 100. 
-\\ \\
-For assessing the synergy scores with the other reference models, one needs to change the \textit{method} parameter to 'HSA', 'Loewe' or 'Bliss'. The \textit{correction} parameter specifies if a baseline correction is applied on the raw dose-response data or not. The baseline correction utilizes the average of the minimum responses of the two single drugs as a baseline response to correct the negative response values. \\ \\
-The output \textit{synergy.score} contains the following components:
+The parameters \textit{Emin} and \textit{Emax} specify the minimal and maximal effect of the drug for
+purposes of fitting in the four-parameter log-logistic model. In the above example command, the minimal effect is fixed to 0 and the maximal effect is fixed to 100.  The \textit{method} parameter may be set
+to 'HSA', 'Loewe' or 'Bliss' to assess the synergy scores with the other reference models.
+The \textit{correction} parameter specifies whether or not baseline correction for negative response
+values is applied to the raw dose-response data. The 'baseline' for this correction is the average of
+the minimum responses of the two single drugs.  The output \textit{synergy.score} contains the following
+components:
 \begin{itemize}
   \item dose.response.mats: the dose-reponse matrix reshaped from the original input.
   \item drug.pairs: the information of the drug combination such as drug names and drug concentrations.
@@ -115,14 +119,19 @@ The output \textit{synergy.score} contains the following components:
 \section{Visualization of synergy scores}
 The synergy scores are calculated across all the tested concentration combinations, which can be straightforwardly visualized as either a two-dimensional or a three-dimensional interaction surface over the dose matrix. The landscape of such a drug interaction scoring is very informative when identifying the specific dose regions where a synergistic or antagonistic drug interaction occurs. The height of the 3D drug interaction landscape is normalized as the \% inhibition effect to facilitate a direct comparison of the degrees of interaction among multiple drug combinations. In addition, a summarized synergy score is provided by averaging over the whole dose-response matrix. To visualize the drug interaction landscape, one can utilize the \textit{PlotSynergy} function as below (Fig.2):
 <<fig.show='hide'>>=
+  PlotSynergy(synergy.score, type = "2D", save.file = FALSE)
+  PlotSynergy(synergy.score, type = "2D", save.file = TRUE)
+  PlotSynergy(synergy.score, type = "3D", save.file = FALSE)
+  PlotSynergy(synergy.score, type = "3D", save.file = TRUE)
+  PlotSynergy(synergy.score, type = "all", save.file = FALSE)
   PlotSynergy(synergy.score, type = "all", save.file = TRUE)
 @
 The \textit{type} parameter specifies the visualization type of the interaction surface as 2D, 3D or both.
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \label{synergyplot}
-  \includegraphics[width=1\textwidth]{"ispinesib.ibrutinib.synergy.1.ZIP"}
-  \includegraphics[width=1\textwidth]{"canertinib.ibrutinib.synergy.2.ZIP"}
-  \caption{\textbf{The drug interaction landscapes based on the ZIP model.} (A) The ibrutinib and ispinesib combination. (B) The ibrutinib and canertinib combination.}
+  \includegraphics[width=1\textwidth]{ispinesib.ibrutinib.synergy.1.ZIP.all.pdf}
+  \includegraphics[width=1\textwidth]{canertinib.ibrutinib.synergy.2.ZIP.all.pdf}
+  \caption{\textbf{Drug interaction landscapes based on the ZIP model.} (A) The ibrutinib and ispinesib combination. (B) The ibrutinib and canertinib combination.}
 \end{figure}
 
 \section{Summary}
