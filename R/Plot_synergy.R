@@ -189,16 +189,6 @@ PlotSynergy <- function(data,
               .RangeWithDefault(col.range, default=-(ncol(data)+1))])
 }
 
-# TODO/REVIEW: The original logic checked into GitHub at the time this function
-# was written used flipped argument order for data.coord and krig.coord.
-# Furthermore, that logic appeared to transpose its output.  Please see the
-# corresponding unit test in test_that("extended_scores_works", {...}).  The
-# original logic swapped the locations of corner values '2' and '3'.  Looking
-# at the dose/response matrices, it seems that this transposition may have been
-# a bug.  With the code below, the contour and wireframe plots are similarly
-# transposed from their current appearance in the documentation, but seem to
-# gibe better with the documented dose/response matrices.
-
 .GetKrigingObservationCoords <- function(data) {
   nr <- nrow(data)
   nc <- ncol(data)
