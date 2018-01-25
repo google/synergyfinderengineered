@@ -1,14 +1,15 @@
-<<<<<<< HEAD
 # Copyright 2018 Google LLC
 #
 # Use of this source code is governed by a MIT-style
 # license that can be found in the LICENSE file or at
 # https://opensource.org/licenses/MIT.
+#
 
-#'Drug interaction landscape
-=======
+library(SpatialExtremes)
+library(gplots)
+library(lattice)
+
 #' Drug interaction landscape
->>>>>>> wip
 #'
 #' A function to visualize the synergy scores for drug combinations as 2D or 3D
 #' interaction landscape over the dose-response matrix.
@@ -133,15 +134,14 @@ PlotSynergy <- function(data,
                -1))
 }
 
-
-
 # Returns a string that may be used as a plot title.  The string includes
 # the mean value of all scores in the selected ranges, and the name of the
-# method used to compute them.  The first row and column are always removed, on
-# these assumptions:
-#  1. For each drug, the first recorded effect is for dose=0.
-#  2. When dose=0 for either drug (monotherapy), the synergy score is also 0.
+# method used to compute them.
 .ComputePlotTitle <- function(scores.dose, row.range, col.range, data.method) {
+  # The first row and column are removed no matter what,
+  # presumably (? TODO/REVIEW) on the assumptions that:
+  #  1. For each drug, the first recorded effect is for dose=0.
+  #  2. When dose=0 for either drug, the synergy score is also 0.
   return(paste("Average synergy: ",
                round(mean(scores.dose[.SliceAtLeastFirst(row.range),
                                       .SliceAtLeastFirst(col.range)],
@@ -174,23 +174,20 @@ PlotSynergy <- function(data,
 # either range is NULL, the data for the corresponding axis of 'data' is
 # returned in full.  The row.range and col.range inputs are each treated as
 # lists whose first two elements are range endpoints, and whose remaining
-# elements (if any) are ignored.  An error results if the bounds of 'row.range'
-# or 'col.range' lie outside the dimensions of 'data' (e.g. 'data' is a 3x3
-# matrix, but rows 1-5 are requested).
+# elements (if any) are ignored.
 .ApplyRanges <- function(data, row.range, col.range) {
+  .RangeWithDefault <- function(range, default) {
+    # TODO/REVIEW: The code checked into GitHub at the time this function was
+    # written modified each element of each range with the transformation x ->
+    # (x-1)*5. It had no examples that used ranges.  The transform seemed out of
+    # place and is omitted here.
+    return(if(is.null(range)) default else range[1]:range[2])
+  }
   # Default value is 'remove the element just after the end of the list',
   # for each dimension of the array (a no-op that permits cleaner syntax).
-  return(data[.RangeWithDefault(row.range, default = -(nrow(data)+1)),
-              .RangeWithDefault(col.range, default = -(ncol(data)+1))])
+  return(data[.RangeWithDefault(row.range, default=-(nrow(data)+1)),
+              .RangeWithDefault(col.range, default=-(ncol(data)+1))])
 }
-
-# If 'range' is NULL, return 'default', otherwise return a slice.
-# The endpoints of the slice are determined by assuming 'range' is a list, and
-# picking its first two elements.  Any additional elements are ignored.
-.RangeWithDefault <- function(range, default) {
-  return(if(is.null(range)) default else range[1]:range[2])
-}
-
 
 # TODO/REVIEW: The original logic checked into GitHub at the time this function
 # was written used flipped argument order for data.coord and krig.coord.
@@ -202,68 +199,36 @@ PlotSynergy <- function(data,
 # transposed from their current appearance in the documentation, but seem to
 # gibe better with the documented dose/response matrices.
 
-.GetKrigingObservationCoords <- function(data) {
-  nr <- nrow(data)
-  nc <- ncol(data)
-  if (nr > 0 && nc > 0) {
-    xtics <- 1:nr
-    ytics <- 1:nc
-    return(cbind(rep(xtics, nc),
-                 rep(ytics, each = nr)))
-  }
-}
-
-.GetKrigingInterpolationParams <- function(data, len) {
-  nr <- nrow(data)
-  nc <- ncol(data)
-  if (nr > 0 && nc > 0) {
-    krig.row.len <- nr + len * (nr - 1)
-    krig.col.len <- nc + len * (nc - 1)
-    krig.xtics <- seq(1, nr, length=krig.row.len)
-    krig.ytics <- seq(1, nc, length=krig.col.len)
-    return(list(rows = krig.row.len,
-                cols = krig.col.len,
-                coord = (cbind(rep(krig.xtics, krig.col.len),
-                              rep(krig.ytics, each = krig.row.len)))))
-  }
-}
-
 # Perform statistical interpolation to smooth plotted values.
 .ExtendedScores <- function(scores.dose, len) {
   # len: how many values need to be predicted between two adjacent elements
   #      of scores.dose
-  kriging.params = .GetKrigingInterpolationParams(scores.dose, len)
-  # Note, not all kriging implementations are suitable for all purposes.  In
-  # particular, SpatialExtremes offers an implementation that works with small
-  # data sets.  Earlier versions of this implementation that used other kriging
-  # packages only worked well with large ones.
-  return(
-    matrix(
-      SpatialExtremes::kriging(
-        data = c(scores.dose),
-        data.coord = .GetKrigingObservationCoords(scores.dose),
-        krig.coord = kriging.params$coord,
-        cov.mod = "whitmat",
-        grid = FALSE,
-        sill = 1,
-        range = 10,
-        smooth = 0.8
-        )$krig.est,
-      nrow=kriging.params$rows,
-      ncol=kriging.params$cols))
+  nr <- nrow(scores.dose)
+  nc <- ncol(scores.dose)
+  return(SpatialExtremes::kriging(
+    data = c(scores.dose),
+    data.coord = cbind(rep(1:nc, nr), rep(1:nr, each = nc)),
+    krig.coord = cbind(seq(1, nc, length = (nc - 1)*(len + 2) - (nc - 2)),
+                       seq(1, nr, length = (nr - 1)*(len + 2) - (nr - 2))),
+    cov.mod = "whitmat",
+    grid = TRUE,
+    sill = 1,
+    range = 10,
+    smooth = 0.8
+  )$krig.est)
 }
 
 .Plot2D <- function(plot.title, mat.tmp, len, row.conc, col.conc,
                     drug.row, drug.col, start.point, end.point) {
   # Note a different layout() here than in .PlotAll()
   layout(matrix(c(1, 2), nrow = 2L, ncol = 1L), heights = c(0.1, 1))
-  .Plot2DTitleAndLegend(plot.title, start.point, end.point)
+  .Plot2DTitle(plot.title, start.point, end.point)
   .Plot2DContourMap(
     mat.tmp, row.conc, col.conc, drug.row, drug.col, start.point, end.point)
   return(recordPlot())
 }
 
-.Plot2DTitleAndLegend <- function (plot.title, start.point, end.point) {
+.Plot2DTitle <- function (plot.title, start.point, end.point) {
   par(mar = c(0, 6.1, 2.1, 4.1))
   suppressWarnings(par(mgp = c(3, -1, 0)))
   levels <- seq(start.point, end.point, by = 2)
@@ -322,8 +287,8 @@ PlotSynergy <- function(data,
   print(
     lattice::wireframe(
       x = mat.tmp,
-      scales = list(arrows = FALSE,
-                    distance = c(0.8,0.8,0.8),
+      scales = list(arrows=FALSE,
+                    distance=c(0.8,0.8,0.8),
                     col = 1,
                     cex = 0.8,
                     z = list(tick.number = 6),
@@ -334,12 +299,12 @@ PlotSynergy <- function(data,
       drape = TRUE,
       colorkey = list(space="top",width=0.5),
       screen = list(z = 30, x = -55),
-      zlab = list(expression("Synergy score"),rot=90,cex=1,axis.key.padding=0),
-      xlab = list(as.character(drug.col),cex=1, rot=20),
-      ylab = list(as.character(drug.row),cex=1,rot=-50),
-      zlim = c(start.point, end.point),
+      zlab=list(expression("Synergy score"),rot=90,cex=1,axis.key.padding=0),
+      xlab=list(as.character(drug.col),cex=1, rot=20),
+      ylab=list(as.character(drug.row),cex=1,rot=-50),
+      zlim=c(start.point, end.point),
       # .GetColors(-100,100) =~ colorRampPalette(c("green","white","red"))(101)
-      col.regions = .GetColors(-100,100),
+      col.regions=.GetColors(-100,100),
       main = plot.title,
       at=lattice::do.breaks(c(start.point, end.point),100),
       par.settings = list(axis.line=list(col="transparent")),
@@ -356,7 +321,7 @@ PlotSynergy <- function(data,
   start.point, end.point) {
   # Note a different layout() here than in .Plot2D().
   layout(matrix(c(1, 2, 3, 3), nrow = 2L, ncol = 2L), heights = c(0.1, 1))
-  .Plot2DTitleAndLegend(plot.title, start.point, end.point)
+  .Plot2DTitle(plot.title, start.point, end.point)
   .Plot2DContourMap(
     mat.tmp, row.conc, col.conc, drug.row, drug.col, start.point, end.point)
   .Plot3D(plot.title, mat.tmp, len, row.conc, col.conc, drug.row, drug.col,
