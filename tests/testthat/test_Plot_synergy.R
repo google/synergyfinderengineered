@@ -58,14 +58,30 @@ test_that("extended_scores_works", {
   # the corner values 1,2,3,4.  In between, we expect to see additional
   # interpolated data points that show a progression from one original
   # value to the next.
-  data <- matrix(c(1,2,
-                   3,4), nrow=2, ncol=2, byrow=TRUE)
-  extended_data <- matrix(c( 1.00, 1.33, 1.69, 2.00,
-                             1.65, 1.98, 2.33, 2.65,
-                             2.36, 2.69, 3.05, 3.36,
-                             3.00, 3.32, 3.68, 4.00),
-                          nrow=4, ncol=4, byrow=TRUE)
-  expect_equal(extended_data, .ExtendedScores(data, 2), tolerance=1e-02)
+  input_data1 <- matrix(c(1,2,
+                          3,4), nrow=2, ncol=2, byrow=TRUE)
+  expected_data1 <- matrix(c( 1.00, 1.33, 1.69, 2.00,
+                              1.65, 1.98, 2.33, 2.65,
+                              2.36, 2.69, 3.05, 3.36,
+                              3.00, 3.32, 3.68, 4.00),
+                           nrow=4, ncol=4, byrow=TRUE)
+  actual_data1 <- .ExtendedScores(input_data1, 2)
+
+  input_data2 <- matrix(c(1.0,2.0,
+                          1.5,2.5,
+                          3.0,4.0), nrow=3, ncol=2, byrow=TRUE)
+  expected_data2 <- matrix(c(1.00, 1.29, 1.64, 2.00,
+                             1.10, 1.39, 1.75, 2.09,
+                             1.25, 1.55, 1.90, 2.24,
+                             1.50, 1.84, 2.19, 2.50,
+                             1.98, 2.30, 2.65, 2.96,
+                             2.51, 2.84, 3.19, 3.50,
+                             3.00, 3.32, 3.67, 4.00),
+                           nrow=7, ncol=4, byrow=TRUE)
+  actual_data2 = .ExtendedScores(input_data2,2)
+
+  expect_equal(expected_data1, actual_data1, tolerance=1e-02)
+  expect_equal(expected_data2, actual_data2, tolerance=1e-02)
 })
 
 # Hardcode some data, taken from the documented examples, to help test our
