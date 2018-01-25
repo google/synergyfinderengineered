@@ -199,23 +199,55 @@ PlotSynergy <- function(data,
 # transposed from their current appearance in the documentation, but seem to
 # gibe better with the documented dose/response matrices.
 
+.GetKrigingObservationCoords <- function(data) {
+  nr <- nrow(data)
+  nc <- ncol(data)
+  if (nr > 0 && nc > 0) {
+    xtics <- 1:nr
+    ytics <- 1:nc
+    return(cbind(rep(xtics, nc),
+                 rep(ytics, each = nr)))
+  }
+}
+
+.GetKrigingInterpolationParams <- function(data, len) {
+  nr <- nrow(data)
+  nc <- ncol(data)
+  if (nr > 0 && nc > 0) {
+    krig.row.len <- nr + len * (nr - 1)
+    krig.col.len <- nc + len * (nc - 1)
+    krig.xtics <- seq(1, nr, length=krig.row.len)
+    krig.ytics <- seq(1, nc, length=krig.col.len)
+    return(list(rows = krig.row.len,
+                cols = krig.col.len,
+                coord = (cbind(rep(krig.xtics, krig.col.len),
+                              rep(krig.ytics, each = krig.row.len)))))
+  }
+}
+
 # Perform statistical interpolation to smooth plotted values.
 .ExtendedScores <- function(scores.dose, len) {
   # len: how many values need to be predicted between two adjacent elements
   #      of scores.dose
-  nr <- nrow(scores.dose)
-  nc <- ncol(scores.dose)
-  return(SpatialExtremes::kriging(
-    data = c(scores.dose),
-    data.coord = cbind(rep(1:nc, nr), rep(1:nr, each = nc)),
-    krig.coord = cbind(seq(1, nc, length = (nc - 1)*(len + 2) - (nc - 2)),
-                       seq(1, nr, length = (nr - 1)*(len + 2) - (nr - 2))),
-    cov.mod = "whitmat",
-    grid = TRUE,
-    sill = 1,
-    range = 10,
-    smooth = 0.8
-  )$krig.est)
+  kriging.params = .GetKrigingInterpolationParams(scores.dose, len)
+  # Note, not all kriging implementations are suitable for all purposes.  In
+  # particular, SpatialExtremes offers an implementation that works with small
+  # data sets.  Earlier versions of this implementation that used other kriging
+  # packages only worked well with large ones.
+  return(
+    matrix(
+      SpatialExtremes::kriging(
+        data = c(scores.dose),
+        data.coord = .GetKrigingObservationCoords(scores.dose),
+        krig.coord = kriging.params$coord,
+        cov.mod = "whitmat",
+        grid = FALSE,
+        sill = 1,
+        range = 10,
+        smooth = 0.8
+        )$krig.est,
+      nrow=kriging.params$rows,
+      ncol=kriging.params$cols))
 }
 
 .Plot2D <- function(plot.title, mat.tmp, len, row.conc, col.conc,
