@@ -177,10 +177,6 @@ PlotSynergy <- function(data,
 # elements (if any) are ignored.
 .ApplyRanges <- function(data, row.range, col.range) {
   .RangeWithDefault <- function(range, default) {
-    # TODO/REVIEW: The code checked into GitHub at the time this function was
-    # written modified each element of each range with the transformation x ->
-    # (x-1)*5. It had no examples that used ranges.  The transform seemed out of
-    # place and is omitted here.
     return(if(is.null(range)) default else range[1]:range[2])
   }
   # Default value is 'remove the element just after the end of the list',
