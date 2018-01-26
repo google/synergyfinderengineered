@@ -3,7 +3,7 @@
 \usepackage{grffile}
 \usepackage[utf8]{inputenc}
 \setlength\parindent{0pt}
-\title{User instructions and tutorials of the \textit{synergyfinder} package}
+\title{User instructions and tutorials of the \textit{synergyfinderengineered} package}
 
 \author[1]{Liye He}
 \author[1]{Krister Wennerberg}
@@ -15,18 +15,19 @@
 \setcounter{Maxaffil}{0}
 \renewcommand\Affilfont{\itshape\small}
 %\VignetteEngine{knitr::knitr}
-%\VignetteIndexEntry{synergyfinder}
+%\VignetteIndexEntry{synergyfinderengineered}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \maketitle
 
 <<load.package, echo=FALSE>>=
   options(width=60)
-  library(synergyfinder)
+  library("synergyfinderengineered")
 @
 
 \section{Introduction}
-Recently, drug combination therapies provide a promising strategy in treating cancer by inhabiting redundant pathways simultaneously [1]. Drug combination screening in the cancer cell models is often utilized as a starting point to prioritize the most potential hits for further experimental investigation and therapy optimization [2]. To facilitate the drug combination discovery, high-throughput drug combination screening has the advantage of assaying a large collection of chemical compounds, generating dynamic dose-response profiles that allow us to quantify the degree of drug-drug interactions at an unprecedented level. A drug interaction is usually classified as synergistic, antagonistic or non-interactive, based on the deviation of the observed drug combination response from the expected effect of non-interaction (the null hypothesis). To quantify the degree of drug synergy, several models have been proposed, such as those based on the Highest single agent model (HSA) [3], the Loewe additivity model (Loewe) [4] and the Bliss independence model (Bliss) [5]. However, these existing drug synergy scoring models, together with their software implementations, were proposed initially for low-throughput experiments, which are not flexible enough to analyse high throughput drug combination screening data. We have recently developed a response surface model, called Zero Interaction Potency (ZIP), which combines the advantages of the Loewe and the Bliss models, and proposed a delta score to characterize the synergy landscape over the full dose-response matrix, which is designed to analyse high throughput drug combination screening data [6]. The package \textit{synergyfinder} provides efficient implementations for all the popular synergy scoring models, including HSA, Loewe, Bliss and ZIP. We will demonstrate how to use the \textit{synergyfinder} package to high throughput drug combination screening data in this vignette.
+Recently, drug combination therapies provide a promising strategy in treating cancer by inhabiting redundant pathways simultaneously [1]. Drug combination screening in the cancer cell models is often utilized as a starting point to prioritize the most potential hits for further experimental investigation and therapy optimization [2]. To facilitate the drug combination discovery, high-throughput drug combination screening has the advantage of assaying a large collection of chemical compounds, generating dynamic dose-response profiles that allow us to quantify the degree of drug-drug interactions at an unprecedented level. A drug interaction is usually classified as synergistic, antagonistic or non-interactive, based on the deviation of the observed drug combination response from the expected effect of non-interaction (the null hypothesis). To quantify the degree of drug synergy, several models have been proposed, such as those based on the Highest single agent model (HSA) [3], the Loewe additivity model (Loewe) [4] and the Bliss independence model (Bliss) [5]. However, these existing drug synergy scoring models, together with their software implementations, were proposed initially for low-throughput experiments, which are not flexible enough to analyse high throughput drug combination screening data. We have recently developed a response surface model, called Zero Interaction Potency (ZIP), which combines the advantages of the Loewe and the Bliss models, and proposed a delta score to characterize the synergy landscape over the full dose-response matrix, which is designed to analyse high throughput drug combination screening data [6]. The package \textit{synergyfinderengineered} provides efficient implementations for all the popular synergy scoring models, including HSA, Loewe, Bliss and ZIP. We will demonstrate how to use the \textit{synergyfinderengineered} package to high throughput drug combination screening data in this vignette.
 \section{Input Data}
 A data frame that describes a drug combination dataset is used as the input. The data frame object must contain the following columns:
 \begin{itemize}
@@ -81,7 +82,7 @@ The pdf files will be saved under the current work directory with the syntax: "d
 The PlotDoseResponse function also provides other parameters for users to adjust the output. For instance, the parameter \textit{pair.index} allows users to choose which pair of drugs to visualize and the parameters \textit{...} are further graphical parameters from the default plot function in R.
 
 \section{Drug synergy scoring}
-The current synergyfinder package provides the synergy scores of four major reference models, including HSA, Loewe, Bliss and ZIP. Let’s consider a drug combination experiment where drug 1 at dose $x_{1}$is combined with drug 2 at dose $x_2$. The effect of such a combination is $y_c$ as compared to the monotherapy effect $y_1(x_{1})$ and $y_2(x_{2})$. To be able to quantify the degree of drug interactions, one needs to determine the deviation of $y_c$ from the expected effect $y_e$ of non-interaction, which is calculated in different ways with the reference models.
+The current synergyfinderengineered package provides the synergy scores of four major reference models, including HSA, Loewe, Bliss and ZIP. Let’s consider a drug combination experiment where drug 1 at dose $x_{1}$is combined with drug 2 at dose $x_2$. The effect of such a combination is $y_c$ as compared to the monotherapy effect $y_1(x_{1})$ and $y_2(x_{2})$. To be able to quantify the degree of drug interactions, one needs to determine the deviation of $y_c$ from the expected effect $y_e$ of non-interaction, which is calculated in different ways with the reference models.
 
 \begin{itemize}
   \item HSA: $y_e$ is the highest monotherapy effect, i.e. $y_e = max(y_1, y_2)$.
@@ -135,7 +136,7 @@ The \textit{type} parameter specifies the visualization type of the interaction 
 \end{figure}
 
 \section{Summary}
-In this vignette, we demonstrated how to use the package \textit{synergyfinder} with an example high-throughput drug combination screening data from [7]. We followed the procedure: illustrating input data, visualising input data, scoring input data and visualising synergy scores. Please go to [2, 6] for more information about the scoring methods.
+In this vignette, we demonstrated how to use the package \textit{synergyfinderengineered} with an example high-throughput drug combination screening data from [7]. We followed the procedure: illustrating input data, visualising input data, scoring input data and visualising synergy scores. Please go to [2, 6] for more information about the scoring methods.
 \begin{thebibliography}{9}
   \bibitem{drug} Hu Y, Gupta-Ostermann D, Bajorath J (2014) Exploring compound promiscuity patterns and multi-target activity spaces. Comput Struct Biotechnol J 9: 1-11
   \bibitem{method} He LY, Kulesskiy E, Saarela J et al (2016) Methods for High-Throughput Drug Combination Screening and Synergy Scoring. Springer Protocols (submitted)
