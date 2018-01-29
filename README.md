@@ -50,17 +50,18 @@ CHANGE DETAILS
 1. Updates to LICENSE.  I fixed an apparent copy/paste error from the R
    DESCRIPTION template, and added my employer to the list of copyright holders.
 
-2. Various updates to DESCRIPTION.
+2. Various updates to DESCRIPTION.  
 
   1. Update 'imports' to include 'SpatialExtremes' instead of 'kriging'.
   2. My name is added to the 'Author' list in this file.
   3. Long lines are wrapped, for easier readability.
   4. Reduce the required version of ggplot2.
+
 3. Eliminate all mention of 'kriging' from NAMESPACE.
 
-4. Make moderate adjustments to Plot_dose_response.R.
+4. Make moderate adjustments to Plot_dose_response.R.  
 
-  1. Adjust semantics for displaying a plot or saving it to a file.
+  1. Adjust semantics for displaying a plot or saving it to a file.  
 
     1. Eliminate post-loop plot 'replay'.
     2. Use dev.new() only when not saving to a file.
