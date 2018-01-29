@@ -49,34 +49,45 @@ CHANGE DETAILS
 
 1. Updates to LICENSE.  I fixed an apparent copy/paste error from the R
    DESCRIPTION template, and added my employer to the list of copyright holders.
+
 2. Various updates to DESCRIPTION.
+
   1. Update 'imports' to include 'SpatialExtremes' instead of 'kriging'.
   2. My name is added to the 'Author' list in this file.
   3. Long lines are wrapped, for easier readability.
   4. Reduce the required version of ggplot2.
 3. Eliminate all mention of 'kriging' from NAMESPACE.
+
 4. Make moderate adjustments to Plot_dose_response.R.
+
   1. Adjust semantics for displaying a plot or saving it to a file.
+
     1. Eliminate post-loop plot 'replay'.
     2. Use dev.new() only when not saving to a file.
     3. Use dev.off() only when saving to a file.
+
   2. Use explicit package namespace prefixes for calls to functions in 'ggplot2'
      and 'grid'.
+
   3. Remove some commented-out code, clean up some whitespace, reflow some
      comments.
+
 5. Perform a near-rewrite refactoring of Plot_synergy.R.
+
   1. Adjust semantics of displaying/saving plots, similarly to
      Plot_dose_response.R. Furthermore, update output filenames to include
      'type' ('2D', '3D', or 'all').
   2. Use numerous tightly-scoped, commented functions for individual pieces
      of functionality.
+
     1. On the simple side, this includes some one-line specialty array-slicing
        implementations, and a function to take an argument's absolute value and
        round it to the next highest multiple of 10.
     2. On the more complicated side, this includes use of helper functions for
        2D and 3D plots. The upshot is that the plotting functionality is now
        shared with the 'plot all' feature, instead of replicated for it. This
-      eliminates significant code duplication.
+       eliminates significant code duplication.
+
   3. Add comprehensive unit tests (in test_Plot_synergy.R) for Plot_synergy.R
      helper functions that determine the data to be included in plots. The plot
      generation functions themselves are not unit-tested, but retain very little
@@ -86,7 +97,9 @@ CHANGE DETAILS
   5. Explicit 'for' loops have been eliminated in favor of 'lapply'.
   6. PlotSynergy is now defined to return NULL, but with a side effect of either
      saving a file or displaying a plot.
+
 6. Several updates to the vignettes in synergyfinder.Rnw:
+
   1. A few minor English tweaks either adjust grammar for clarity/rigor or
      satisfy TeX's 'badness' warnings. There are various whitespace changes as
      well.
@@ -99,4 +112,4 @@ CHANGE DETAILS
     'type' and 'save.file'.
   5. The filenames of PDF output to be included in the vignette document are
      adjusted to include 'type' (which, as noted above, is a newly-added
-    constituent of the filename in this change).
+     constituent of the filename in this change).
